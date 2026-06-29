@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>의열단 가입 신청서 — 역사 감정이입 활동</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const QUESTIONS = [
+  {
+    id: "q1",
+    scene: "1920년 봄, 밀양. 당신은 스물두 살 조선 청년입니다.",
+    situation:
+      "어머니는 당신이 보통학교 교사가 되길 바라십니다. 약혼한 사람도 있습니다. 그런데 오늘 밤, 비밀 연락이 왔습니다. 의열단에서 당신을 찾는다고.",
+    question: "당신은 지금 어떤 마음인가?",
+    options: [
+      {
+        text: "두렵다. 하지만 이대로 살아가는 것이 더 두렵다.",
+        weight: "결의",
+        echo: "\"살아도 사는 것이 아니요, 죽어도 죽는 것이 아니다.\" 많은 단원들이 같은 마음으로 문을 두드렸습니다.",
+      },
+      {
+        text: "조국이 있어야 내 가족도 있다. 나서야 한다.",
+        weight: "책임",
+        echo: "단원 김상윤은 결혼식 전날 밤, 가족에게 편지 한 통을 남기고 떠났습니다.",
+      },
+      {
+        text: "어머니와 약혼자가 눈에 밟힌다. 그래도 가겠다.",
+        weight: "희생",
+        echo: "많은 단원들이 사랑하는 이들을 영영 보지 못할 것을 알면서도 길을 떠났습니다.",
+      },
+      {
+        text: "이 나라에서 평범하게 사는 것 자체가 굴욕이다.",
+        weight: "분노",
+        echo: "1910년 강제병합 이후, 조선인은 자국에서 이등 국민으로 살아야 했습니다.",
+      },
+    ],
+  },
+  {
+    id: "q2",
+    scene: "1920년 여름, 중국 상하이. 당신은 의열단에 합류했습니다.",
+    situation:
+      "단장 김원봉이 임무를 설명합니다. 조선총독부 청사에 폭탄을 던지는 것. 성공해도 탈출로가 없습니다. 현장에서 체포되거나 순국할 가능성이 높습니다. 단원 몇 명이 이미 그 길을 걸었습니다.",
+    question: "당신은 이 임무를 맡겠는가?",
+    options: [
+      {
+        text: "맡겠습니다. 한 번의 폭음이 천만 민중을 깨울 수 있다면.",
+        weight: "헌신",
+        echo: "1923년 의열단 박재혁은 부산경찰서에 폭탄을 던지고 현장에서 체포되어 순국했습니다.",
+      },
+      {
+        text: "두렵지만, 내가 안 하면 다른 동지가 해야 한다.",
+        weight: "연대",
+        echo: "의열단원들은 서로의 죽음을 목격하면서도 빈자리를 채워나갔습니다.",
+      },
+      {
+        text: "살아서 더 많은 거사를 치르는 것이 낫지 않겠습니까?",
+        weight: "전략",
+        echo: "김원봉은 \"죽는 것보다 사는 것이 더 어렵다\"며 살아남아 싸우는 것도 사명임을 강조했습니다.",
+      },
+      {
+        text: "맡겠습니다. 이미 죽은 몸이라 생각한 지 오래입니다.",
+        weight: "초월",
+        echo: "의열단의 공약 첫 번째는 \"천하의 정의를 위해 몸을 바친다\"였습니다.",
+      },
+    ],
+  },
+  {
+    id: "q3",
+    scene: "1922년 겨울, 경성. 거사 전날 밤입니다.",
+    situation:
+      "내일이면 모든 것이 끝납니다. 폭탄은 준비되었고, 경로도 외웠습니다. 이 방이 조선 땅에서의 마지막 밤일지 모릅니다. 창밖으로 경성의 불빛들이 보입니다.",
+    question: "당신은 이 마지막 밤에 무엇을 하겠는가?",
+    options: [
+      {
+        text: "어머니께 편지를 쓴다. 부치지는 못하더라도.",
+        weight: "그리움",
+        echo: "많은 단원들의 유품에서 가족에게 부치지 못한 편지들이 발견되었습니다.",
+      },
+      {
+        text: "동지들과 마지막으로 술잔을 나눈다.",
+        weight: "동료애",
+        echo: "단원들은 서로를 '의형제'라 불렀습니다. 피보다 진한 유대였습니다.",
+      },
+      {
+        text: "독립된 조선의 모습을 상상하며 눈을 감는다.",
+        weight: "희망",
+        echo: "\"내가 죽은 뒤 30년이 지나면 조선은 반드시 독립한다.\" 단원 강우규의 유언입니다.",
+      },
+      {
+        text: "아무것도 하지 않는다. 고요히 앉아 새벽을 기다린다.",
+        weight: "고요",
+        echo: "두려움과 결의가 뒤섞인 그 침묵은, 말로 표현할 수 없는 각오였을 것입니다.",
+      },
+    ],
+  },
+  {
+    id: "q4",
+    scene: "거사 직후. 당신은 일경에게 붙잡혔습니다.",
+    situation:
+      "취조실. 일본 경찰이 묻습니다. \"배후가 누구냐. 동지들의 이름을 대라.\" 고문이 시작됩니다. 당신이 입을 열면 동지들이 죽습니다. 버티면 당신이 죽습니다.",
+    question: "당신은 어떻게 하겠는가?",
+    options: [
+      {
+        text: "입을 열지 않는다. 동지들을 지키는 것이 마지막 임무다.",
+        weight: "의리",
+        echo: "1920년 체포된 단원 최수봉은 혹독한 고문 속에서도 끝내 동지를 팔지 않았습니다.",
+      },
+      {
+        text: "거짓 정보를 흘려 일경을 혼란에 빠뜨린다.",
+        weight: "지략",
+        echo: "일부 단원들은 고문 중에도 기지를 발휘해 조직을 보호하는 거짓 자백을 했습니다.",
+      },
+      {
+        text: "\"나는 조국을 위해 싸웠다. 그것이 죄라면 달게 받겠다\"고 당당히 말한다.",
+        weight: "당당함",
+        echo: "법정에서 독립운동의 정당성을 외친 단원들의 최후 진술은 역사에 남았습니다.",
+      },
+      {
+        text: "스스로 목숨을 끊어 조직을 지킨다.",
+        weight: "희생",
+        echo: "실제로 일부 단원들은 체포 순간 자결을 택했습니다. 조직을 끝까지 지키기 위해.",
+      },
+    ],
+  },
+];
+
+const WEIGHT_COLOR = {
+  결의: "#8b1a1a", 책임: "#5a3a00", 희생: "#4a1a4a", 분노: "#8b3a00",
+  헌신: "#1a3a5a", 연대: "#1a5a3a", 전략: "#3a3a1a", 초월: "#3a1a5a",
+  그리움: "#5a1a3a", 동료애: "#1a4a3a", 희망: "#3a5a1a", 고요: "#2a2a4a",
+  의리: "#5a1a1a", 지략: "#3a4a1a", 당당함: "#1a2a5a",
+};
+
+const CHARACTER_MAP = {
+  결의: { title: "굳은 결의의 투사", desc: "당신은 두려움을 알면서도 앞으로 나아가는 사람입니다. 많은 단원들이 당신처럼 두려움과 결의 사이에서 길을 선택했습니다." },
+  헌신: { title: "온몸을 바친 헌신자", desc: "당신은 개인의 삶보다 더 큰 것을 위해 자신을 내던질 수 있는 사람입니다. 의열단의 정신 그 자체입니다." },
+  희생: { title: "사랑하기에 떠나는 사람", desc: "당신은 사랑하는 것들을 가장 소중히 여기면서도, 그것을 지키기 위해 모든 것을 놓을 수 있는 사람입니다." },
+  의리: { title: "동지를 끝까지 지키는 사람", desc: "당신에게 동료는 목숨보다 소중합니다. 의열단이 단순한 조직이 아닌 가족이 될 수 있었던 것은 당신 같은 사람 때문입니다." },
+  희망: { title: "미래를 믿는 사람", desc: "당신은 아직 오지 않은 내일을 위해 오늘을 바칩니다. 독립된 조선을 꿈꾸며 걸어간 수많은 청년들처럼." },
+  분노: { title: "불의에 눈감지 않는 사람", desc: "당신의 분노는 정의에서 비롯됩니다. 그 뜨거운 불꽃이 역사를 바꾸는 힘이 되었습니다." },
+  책임: { title: "시대의 책임을 진 사람", desc: "당신은 '나 하나'가 아닌 '우리 모두'를 봅니다. 그 시야가 당신을 독립운동의 한가운데로 이끕니다." },
+  연대: { title: "함께 걷는 동지", desc: "혼자라면 두려웠겠지만, 함께라면 갈 수 있었습니다. 당신은 의열단을 하나로 묶는 사람입니다." },
+  당당함: { title: "역사 앞에 당당한 사람", desc: "당신은 자신이 한 일의 의미를 압니다. 법정에서도, 고문실에서도 그 당당함은 빼앗길 수 없었습니다." },
+  초월: { title: "죽음을 넘어선 사람", desc: "당신은 이미 삶과 죽음의 경계를 넘었습니다. 그 자유로움이 오히려 가장 강한 힘이 됩니다." },
+  전략: { title: "살아서 더 싸우는 사람", desc: "죽는 것이 쉬울 때, 살아서 싸우는 것을 택한 사람. 김원봉은 그것이 더 어렵다고 했습니다." },
+  지략: { title: "지혜로 적을 이기는 사람", desc: "총칼 대신 지혜로 싸우는 사람. 첩보와 정보전의 시대, 당신 같은 단원이 필요했습니다." },
+  그리움: { title: "인간적인 투사", desc: "사랑하는 이를 그리워하면서도 길을 떠난 사람. 그 눈물이 약함이 아니라, 더 깊은 결의의 증거입니다." },
+  고요: { title: "말없이 앞으로 나아가는 사람", desc: "두려움도 기대도 아닌 그 고요한 각오. 가장 깊은 곳에서 우러난 결심이 가장 오래 갑니다." },
+  동료애: { title: "동지를 가족으로 여기는 사람", desc: "의열단원들이 서로를 '의형제'라 부른 이유가 당신 안에 있습니다. 그 유대가 극한의 공포를 견디게 했습니다." },
+};
+
+const font = "'Noto Serif KR', 'Nanum Myeongjo', Georgia, serif";
+
+/* ─────────────────────────────────────────────
+   GLOBAL STYLES
+───────────────────────────────────────────── */
+const gStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  ::selection{background:#8b1a1a;color:#f5ead0;}
+  input::placeholder{color:#b89a6a;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes flicker{0%,100%{opacity:1;}50%{opacity:0.65;}}
+  @keyframes pulseGlow{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  @keyframes inkDrop{from{opacity:0;transform:scale(0.88);}to{opacity:1;transform:scale(1);}}
+
+  .fade-up{animation:fadeUp 0.5s ease both;}
+  .fu1{animation:fadeUp 0.5s 0.1s ease both;}
+  .fu2{animation:fadeUp 0.5s 0.22s ease both;}
+  .fu3{animation:fadeUp 0.5s 0.34s ease both;}
+  .fu4{animation:fadeUp 0.5s 0.46s ease both;}
+  .fu5{animation:fadeUp 0.5s 0.58s ease both;}
+
+  .option-row{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:14px 16px;cursor:pointer;
+    border:1px solid transparent;margin-bottom:6px;
+    transition:background 0.15s,border-color 0.15s;
+  }
+  .option-row:hover{background:rgba(139,26,26,0.05);border-color:rgba(139,26,26,0.25);}
+  .option-row.sel{border-color:#8b1a1a;background:rgba(139,26,26,0.08);}
+
+  .echo-box{
+    background:rgba(139,26,26,0.07);border-left:3px solid #8b1a1a;
+    padding:12px 14px;margin-top:6px;margin-bottom:8px;
+    animation:inkDrop 0.35s ease;
+    font-size:13px;color:#3a1a00;line-height:1.9;font-style:italic;
+  }
+
+  @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+
+  .modal-overlay{
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(10,4,0,0.72);
+    display:flex;align-items:center;justify-content:center;padding:1.5rem;
+    animation:overlayIn 0.2s ease;
+  }
+  .modal-card{
+    background:#f5ead0;border:1px solid #8b6914;
+    max-width:440px;width:100%;position:relative;
+    box-shadow:0 16px 60px rgba(0,0,0,0.6);
+    animation:modalIn 0.28s ease;
+    font-family:${font};
+  }
+  .modal-header{
+    background:#1a0800;padding:1.4rem 1.6rem 1.2rem;
+    position:relative;overflow:hidden;
+  }
+  .modal-header::before{
+    content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(135deg,transparent,transparent 14px,rgba(139,26,26,0.06) 14px,rgba(139,26,26,0.06) 15px);
+  }
+  .modal-body{padding:1.4rem 1.6rem 0;}
+  .modal-footer{
+    padding:1rem 1.6rem 1.4rem;
+    display:flex;justify-content:flex-end;gap:8px;
+    border-top:1px solid rgba(139,105,20,0.25);margin-top:1.2rem;
+  }
+  .modal-btn-confirm{
+    background:#8b1a1a;color:#f5ead0;border:none;cursor:pointer;
+    padding:10px 24px;font-family:${font};font-size:13px;
+    font-weight:700;letter-spacing:3px;transition:background 0.2s;
+  }
+  .modal-btn-confirm:hover{background:#6a1010;}
+  .modal-btn-close{
+    background:transparent;color:#5a3a1a;
+    border:1px solid #8b6914;cursor:pointer;
+    padding:10px 20px;font-family:${font};font-size:13px;
+    letter-spacing:2px;transition:background 0.2s;
+  }
+  .modal-btn-close:hover{background:rgba(139,105,20,0.12);}
+
+  .weight-tag{
+    display:inline-flex;align-items:center;
+    padding:3px 10px;font-size:11px;font-weight:700;
+    letter-spacing:3px;color:#f5ead0;animation:inkDrop 0.3s ease;
+  }
+
+  .paper-lines{
+    position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(139,105,20,0.09) 32px),
+      repeating-linear-gradient(90deg,transparent,transparent 63px,rgba(139,105,20,0.04) 64px);
+  }
+
+  .btn-p{
+    display:inline-flex;align-items:center;gap:10px;
+    background:#8b1a1a;color:#f5ead0;border:none;cursor:pointer;
+    padding:14px 32px;font-family:${font};font-size:15px;
+    font-weight:700;letter-spacing:3px;transition:background 0.2s;
+  }
+  .btn-p:hover{background:#6a1010;}
+  .btn-d{
+    display:inline-flex;align-items:center;gap:10px;
+    background:#1a0800;color:#f5ead0;border:none;cursor:pointer;
+    padding:15px 36px;font-family:${font};font-size:15px;
+    font-weight:700;letter-spacing:4px;transition:background 0.2s;
+  }
+  .btn-d:hover{background:#8b1a1a;}
+  .btn-d:disabled{opacity:0.38;cursor:not-allowed;}
+  .btn-g{
+    display:inline-flex;align-items:center;gap:8px;
+    background:transparent;border:1px solid #8b6914;color:#5a3a1a;
+    cursor:pointer;padding:10px 24px;font-family:${font};
+    font-size:13px;letter-spacing:2px;transition:background 0.2s;
+  }
+  .btn-g:hover{background:rgba(139,105,20,0.12);}
+
+  .progress-wrap{height:3px;background:rgba(139,105,20,0.2);}
+  .progress-fill{height:100%;background:#8b1a1a;transition:width 0.5s ease;}
+`;
+
+/* ─────────────────────────────────────────────
+   ATOMS
+───────────────────────────────────────────── */
+function PaperEdge() {
+  return (
+    <div style={{
+      height: 6,
+      background: "repeating-linear-gradient(90deg,#c9a96e 0,#c9a96e 1px,transparent 1px,transparent 6px)",
+    }} />
+  );
+}
+
+function Divider({ label }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:10, margin:"1.2rem 0", color:"#8b1a1a" }}>
+      <div style={{ flex:1, height:1, background:"#c9a96e" }} />
+      {label && <span style={{ fontSize:11, letterSpacing:5, fontWeight:700, whiteSpace:"nowrap" }}>{label}</span>}
+      <div style={{ flex:1, height:1, background:"#c9a96e" }} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   ECHO POPUP MODAL
+───────────────────────────────────────────── */
+function EchoPopup({ opt, onConfirm, onClose }) {
+  if (!opt) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div style={{ position:"relative", zIndex:1 }}>
+            <div style={{ fontSize:10, color:"#c9a96e", letterSpacing:5, marginBottom:8 }}>당신의 각오</div>
+            <span className="weight-tag" style={{ background: WEIGHT_COLOR[opt.weight] || "#8b1a1a", fontSize:13, letterSpacing:4 }}>
+              {opt.weight}
+            </span>
+          </div>
+        </div>
+        <div className="modal-body">
+          <div style={{ fontSize:14, color:"#1a0800", lineHeight:1.9, fontWeight:700, marginBottom:"1rem", borderLeft:"3px solid #8b1a1a", paddingLeft:"0.9rem" }}>
+            "{opt.text}"
+          </div>
+          <div style={{ background:"rgba(139,26,26,0.06)", padding:"1rem 1.1rem", fontSize:13, color:"#3a1a00", lineHeight:2, fontStyle:"italic" }}>
+            📜 {opt.echo}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="modal-btn-close" onClick={onClose}>닫기</button>
+          <button className="modal-btn-confirm" onClick={onConfirm}>이 각오로 나아가겠소</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   INTRO
+───────────────────────────────────────────── */
+function IntroStep({ onStart }) {
+  return (
+    <div style={{ fontFamily:font }}>
+      {/* Dark atmospheric header */}
+      <div style={{
+        background:"#1a0800", padding:"3rem 2.5rem 2.5rem",
+        textAlign:"center", position:"relative", overflow:"hidden",
+      }}>
+        <div style={{
+          position:"absolute", inset:0, pointerEvents:"none",
+          backgroundImage:"repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(139,26,26,0.06) 18px,rgba(139,26,26,0.06) 19px)",
+        }} />
+        <div style={{ position:"relative", zIndex:1 }}>
+          <div style={{
+            fontSize:40, marginBottom:"1.2rem",
+            animation:"flicker 2.8s ease-in-out infinite", display:"inline-block",
+          }}>🕯</div>
+          <div className="fade-up" style={{
+            fontSize:50, fontWeight:900, color:"#f5ead0",
+            letterSpacing:14, lineHeight:1,
+            textShadow:"0 2px 24px rgba(139,26,26,0.7)",
+          }}>義烈團</div>
+          <div className="fu1" style={{
+            fontSize:12, color:"#c9a96e", letterSpacing:8, marginTop:10,
+          }}>의 열 단 · 1919–1938</div>
+          <div className="fu2" style={{
+            fontSize:14, color:"rgba(245,234,208,0.65)",
+            marginTop:"1.8rem", letterSpacing:2, lineHeight:2,
+            maxWidth:380, margin:"1.8rem auto 0",
+          }}>
+            "천하의 정의의 사(事)를<br/>맹렬히 실행하기로 함"
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding:"2.5rem 2.5rem 2.5rem", position:"relative" }}>
+        <div className="paper-lines" />
+        <div style={{ position:"relative", zIndex:1 }}>
+
+          <div className="fu1" style={{
+            fontSize:15, color:"#1a0800", lineHeight:2.1, marginBottom:"1.8rem",
+            borderLeft:"3px solid #8b1a1a", paddingLeft:"1.2rem",
+          }}>
+            <strong>1920년, 조선.</strong><br />
+            당신은 지금 이 나라에서 조선인으로 살아가고 있습니다.<br />
+            학교에서는 일본어를 써야 하고, 길에서는 일본 순사의 눈치를 봐야 합니다.<br />
+            신문에는 검열의 흔적이 가득하고, 독립을 입에 담는 것만으로도 잡혀갑니다.
+          </div>
+
+          {/* What is this activity */}
+          <div className="fu2" style={{
+            background:"rgba(139,26,26,0.06)", border:"1px solid rgba(139,26,26,0.2)",
+            padding:"1.2rem 1.4rem", marginBottom:"1.8rem",
+          }}>
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:4, color:"#8b1a1a", marginBottom:10 }}>
+              이 활동은
+            </div>
+            <p style={{ fontSize:14, color:"#2a0e00", lineHeight:2 }}>
+              단순한 역사 퀴즈가 아닙니다. 당신이 <strong>1920년대 조선 청년</strong>이 되어,
+              의열단원들이 실제로 마주했던 순간들을 직접 경험해 보는 활동입니다.<br />
+              <strong>맞고 틀린 답은 없습니다.</strong> 당신의 진심을 선택하세요.
+              선택마다 실제 단원들의 이야기가 이어집니다.
+            </p>
+          </div>
+
+          {/* Historical figures */}
+          <div className="fu3" style={{
+            fontSize:11, fontWeight:700, letterSpacing:5, color:"#8b1a1a", marginBottom:10,
+          }}>
+            이들의 이야기를 따라갑니다
+          </div>
+          <div className="fu3" style={{
+            display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.7rem",
+            marginBottom:"2rem",
+          }}>
+            {[
+              { name:"김익상", age:"24세", act:"조선총독부 폭탄 투척 (1921)" },
+              { name:"박재혁", age:"23세", act:"부산경찰서 폭탄 투척, 순국 (1920)" },
+              { name:"김상옥", age:"34세", act:"종로경찰서 폭탄 투척, 순국 (1923)" },
+              { name:"나석주", age:"32세", act:"동양척식주식회사 폭탄 투척 (1926)" },
+            ].map(p => (
+              <div key={p.name} style={{
+                background:"rgba(26,8,0,0.04)", border:"1px solid rgba(139,105,20,0.3)",
+                padding:"10px 12px",
+              }}>
+                <div style={{ fontSize:14, fontWeight:700, color:"#1a0800" }}>
+                  {p.name}&nbsp;
+                  <span style={{ fontSize:11, color:"#8b6914", fontWeight:400 }}>({p.age})</span>
+                </div>
+                <div style={{ fontSize:12, color:"#5a3a1a", marginTop:3, lineHeight:1.7 }}>{p.act}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="fu4" style={{ textAlign:"center" }}>
+            <button className="btn-p" onClick={onStart}>
+              지금 그 시대로 들어가겠습니다 →
+            </button>
+            <p style={{ marginTop:10, fontSize:11, color:"#8b6914", letterSpacing:2 }}>
+              총 4개의 장면 · 약 5분 소요
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   QUESTION
+───────────────────────────────────────────── */
+function QuestionStep({ qIndex, question, answers, onAnswer, onNext, onPrev }) {
+  const [selected, setSelected] = useState(answers[question.id] ?? null);
+  const [popup, setPopup] = useState(null); // opt object when open
+  const progress = (qIndex / QUESTIONS.length) * 100;
+  const isLast = qIndex === QUESTIONS.length - 1;
+
+  // re-sync if navigating back
+  useEffect(() => {
+    setSelected(answers[question.id] ?? null);
+  }, [question.id]);
+
+  const handleSelect = (idx) => {
+    // open popup immediately on click
+    setPopup({ idx, opt: question.options[idx] });
+  };
+
+  const handleConfirm = () => {
+    const idx = popup.idx;
+    setSelected(idx);
+    onAnswer(question.id, idx);
+    setPopup(null);
+  };
+
+  const handleClosePopup = () => {
+    setPopup(null);
+  };
+
+  return (
+    <div style={{ fontFamily:font }}>
+      {/* Popup modal */}
+      {popup && (
+        <EchoPopup
+          opt={popup.opt}
+          onConfirm={handleConfirm}
+          onClose={handleClosePopup}
+        />
+      )}
+
+      {/* Scene header */}
+      <div style={{
+        background:"#1a0800", padding:"1.8rem 2.5rem 1.5rem",
+        position:"relative", overflow:"hidden",
+      }}>
+        <div style={{
+          position:"absolute", inset:0, pointerEvents:"none",
+          backgroundImage:"repeating-linear-gradient(135deg,transparent,transparent 16px,rgba(139,26,26,0.05) 16px,rgba(139,26,26,0.05) 17px)",
+        }} />
+        <div style={{ position:"relative", zIndex:1 }}>
+          <div style={{ fontSize:10, color:"#c9a96e", letterSpacing:5, marginBottom:8 }}>
+            장면 {qIndex + 1} / {QUESTIONS.length}
+          </div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#f5ead0", letterSpacing:1, lineHeight:1.7 }}>
+            {question.scene}
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="progress-wrap">
+        <div className="progress-fill" style={{ width:`${progress}%` }} />
+      </div>
+
+      <div style={{ padding:"2rem 2.5rem 2.5rem", position:"relative" }}>
+        <div className="paper-lines" />
+        <div style={{ position:"relative", zIndex:1 }}>
+
+          {/* Situation */}
+          <div className="fade-up" style={{
+            fontSize:14, color:"#2a0e00", lineHeight:2.1, marginBottom:"1.5rem",
+            padding:"1rem 1.2rem",
+            background:"rgba(139,105,20,0.07)", borderLeft:"3px solid #c9a96e",
+          }}>
+            {question.situation}
+          </div>
+
+          {/* Question */}
+          <div className="fu1" style={{
+            fontSize:19, fontWeight:900, color:"#1a0800",
+            marginBottom:"1.2rem", letterSpacing:1, lineHeight:1.6,
+          }}>
+            {question.question}
+          </div>
+
+          {/* Options */}
+          <div className="fu2">
+            {question.options.map((opt, i) => (
+              <div
+                key={i}
+                className={`option-row${selected === i ? " sel" : ""}`}
+                onClick={() => handleSelect(i)}
+              >
+                <input
+                  type="radio"
+                  readOnly
+                  checked={selected === i}
+                  style={{ marginTop:3, accentColor:"#8b1a1a", flexShrink:0 }}
+                />
+                <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                  <div style={{ fontSize:14, color:"#1a0800", lineHeight:1.8 }}>{opt.text}</div>
+                  {selected === i && (
+                    <span className="weight-tag" style={{
+                      background: WEIGHT_COLOR[opt.weight] || "#8b1a1a",
+                      fontSize:10, letterSpacing:3, flexShrink:0,
+                    }}>
+                      {opt.weight}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Navigation */}
+          <div style={{
+            display:"flex", justifyContent:"space-between", alignItems:"center",
+            marginTop:"2rem", paddingTop:"1.2rem", borderTop:"1px solid #c9a96e",
+          }}>
+            {qIndex > 0
+              ? <button className="btn-g" onClick={onPrev}>← 이전 장면</button>
+              : <div />}
+            <button
+              className="btn-d"
+              onClick={onNext}
+              disabled={selected === null}
+            >
+              {isLast ? "각오를 제출하겠소" : "다음 장면으로 →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   LOADING
+───────────────────────────────────────────── */
+function LoadingStep() {
+  const lines = [
+    "당신의 각오를 단장께서 읽고 있습니다...",
+    "총탄이 빗발치는 경성의 골목길을 지나...",
+    "동지들의 눈빛이 당신을 바라봅니다...",
+    "역사가 당신의 선택을 기억합니다.",
+  ];
+  const [line, setLine] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setLine(l => (l + 1) % lines.length), 850);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{
+      textAlign:"center", padding:"5rem 2rem",
+      display:"flex", flexDirection:"column", alignItems:"center",
+      fontFamily:font, background:"#f5ead0", position:"relative",
+    }}>
+      <div className="paper-lines" />
+      <div style={{ position:"relative", zIndex:1 }}>
+        <div style={{
+          fontSize:52, marginBottom:"1.8rem",
+          animation:"pulseGlow 1.8s ease-in-out infinite", display:"inline-block",
+        }}>🕯</div>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1a0800", letterSpacing:2, minHeight:28 }}>
+          {lines[line]}
+        </div>
+        <div style={{ fontSize:11, color:"#8b6914", marginTop:10, letterSpacing:3 }}>
+          잠시 그 시대의 공기를 느껴보시오.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   RESULT
+───────────────────────────────────────────── */
+function ResultStep({ answers, onReset }) {
+  const weights = QUESTIONS.map(q => {
+    const idx = answers[q.id];
+    return (idx !== null && idx !== undefined) ? q.options[idx].weight : null;
+  }).filter(Boolean);
+
+  const weightCount = {};
+  weights.forEach(w => { weightCount[w] = (weightCount[w] || 0) + 1; });
+  const topWeight = Object.entries(weightCount).sort((a,b) => b[1]-a[1])[0]?.[0] || "결의";
+  const character = CHARACTER_MAP[topWeight] || CHARACTER_MAP["결의"];
+
+  return (
+    <div style={{ fontFamily:font }}>
+      {/* Hero */}
+      <div style={{
+        background:"#1a0800", padding:"2.5rem 2.5rem 2rem",
+        textAlign:"center", position:"relative", overflow:"hidden",
+      }}>
+        <div style={{
+          position:"absolute", inset:0, pointerEvents:"none",
+          backgroundImage:"repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(139,26,26,0.06) 18px,rgba(139,26,26,0.06) 19px)",
+        }} />
+        <div style={{ position:"relative", zIndex:1 }}>
+          <div style={{ fontSize:11, color:"#c9a96e", letterSpacing:6, marginBottom:"1rem" }}>
+            의열단장 김원봉의 말씀
+          </div>
+          <div style={{
+            fontSize:18, fontWeight:700, color:"#f5ead0",
+            lineHeight:2, letterSpacing:1, maxWidth:440, margin:"0 auto",
+          }}>
+            "당신이 선택한 길을 보았소.<br />
+            그 각오의 무게를 나는 압니다."
+          </div>
+          <div style={{
+            marginTop:"1.5rem", display:"inline-block",
+            background:"rgba(232,200,106,0.15)", border:"1px solid rgba(232,200,106,0.5)",
+            padding:"8px 28px",
+          }}>
+            <span style={{ fontSize:13, color:"#e8c86a", letterSpacing:4, fontWeight:700 }}>
+              {character.title}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding:"2rem 2.5rem 2.5rem", background:"#f5ead0", position:"relative" }}>
+        <div className="paper-lines" />
+        <div style={{ position:"relative", zIndex:1 }}>
+
+          {/* Character description */}
+          <div className="fade-up" style={{
+            fontSize:15, color:"#1a0800", lineHeight:2.1,
+            marginBottom:"2rem", padding:"1.2rem 1.4rem",
+            background:"rgba(139,26,26,0.06)", borderLeft:"3px solid #8b1a1a",
+          }}>
+            {character.desc}
+          </div>
+
+          {/* Answer recap */}
+          <Divider label="당신이 선택한 각오들" />
+          <div style={{ display:"flex", flexDirection:"column", gap:"1.2rem", marginBottom:"2rem" }}>
+            {QUESTIONS.map((q, i) => {
+              const idx = answers[q.id];
+              if (idx === null || idx === undefined) return null;
+              const opt = q.options[idx];
+              return (
+                <div key={q.id} className="fade-up" style={{
+                  borderBottom:"1px solid rgba(139,105,20,0.2)", paddingBottom:"1.2rem",
+                }}>
+                  <div style={{ fontSize:11, color:"#8b6914", letterSpacing:3, marginBottom:5 }}>
+                    장면 {i+1} — {q.scene.split(". ")[0]}
+                  </div>
+                  <div style={{ fontSize:14, color:"#2a0e00", lineHeight:1.9, marginBottom:7 }}>
+                    "{opt.text}"
+                  </div>
+                  <div style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap" }}>
+                    <span className="weight-tag" style={{
+                      background: WEIGHT_COLOR[opt.weight] || "#8b1a1a", fontSize:10, flexShrink:0,
+                    }}>
+                      {opt.weight}
+                    </span>
+                    <span style={{ fontSize:12, color:"#5a3a1a", fontStyle:"italic", lineHeight:1.7 }}>
+                      {opt.echo}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Reflection */}
+          <div style={{
+            background:"rgba(26,8,0,0.05)", border:"1px solid rgba(139,105,20,0.3)",
+            padding:"1.4rem 1.6rem", marginBottom:"2rem",
+          }}>
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:4, color:"#8b1a1a", marginBottom:10 }}>
+              생각해봅시다
+            </div>
+            <p style={{ fontSize:14, color:"#2a0e00", lineHeight:2 }}>
+              의열단원들의 평균 나이는 <strong>20대 초반</strong>이었습니다. 지금 여러분과 비슷한 나이입니다.
+              그들이 목숨을 걸었던 것은 무모함이 아니라,
+              그렇게 하지 않으면 안 된다는 깊은 절박함에서 비롯된 것이었습니다.
+            </p>
+            <p style={{ fontSize:14, color:"#2a0e00", lineHeight:2, marginTop:8 }}>
+              오늘 여러분이 느낀 것들 — 두려움, 결의, 그리움, 책임감 —
+              이 감정들이 실제로 그들이 느꼈을 것들입니다.
+              그 감정의 무게를 기억해 주세요.
+            </p>
+          </div>
+
+          {/* Final quote */}
+          <div style={{
+            textAlign:"center", padding:"1.5rem 0",
+            borderTop:"1px solid #c9a96e", borderBottom:"1px solid #c9a96e",
+            marginBottom:"2rem",
+          }}>
+            <div style={{
+              fontSize:15, fontWeight:700, color:"#8b1a1a",
+              letterSpacing:1, lineHeight:2,
+            }}>
+              "내가 죽은 뒤 30년 후에 조선은 반드시 독립한다."
+            </div>
+            <div style={{ fontSize:11, color:"#8b6914", marginTop:6, letterSpacing:2 }}>
+              — 강우규 의사, 순국 직전 (1920)
+            </div>
+          </div>
+
+          <div style={{ textAlign:"center" }}>
+            <button className="btn-g" onClick={onReset}>
+              ↺ 처음부터 다시 체험하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   ROOT
+───────────────────────────────────────────── */
+function App() {
+  const [step, setStep] = useState("intro");
+  const [qIndex, setQIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const topRef = useRef(null);
+
+  const scrollTop = () => {
+    if (topRef.current) topRef.current.scrollIntoView({ behavior:"smooth" });
+  };
+
+  const handleAnswer = (id, idx) => setAnswers(prev => ({ ...prev, [id]: idx }));
+
+  const handleNext = () => {
+    if (qIndex < QUESTIONS.length - 1) {
+      setQIndex(i => i + 1); scrollTop();
+    } else {
+      setStep("loading"); scrollTop();
+      setTimeout(() => { setStep("result"); scrollTop(); }, 3000);
+    }
+  };
+
+  const handlePrev = () => {
+    if (qIndex > 0) { setQIndex(i => i - 1); scrollTop(); }
+  };
+
+  const handleReset = () => {
+    setStep("intro"); setQIndex(0); setAnswers({}); scrollTop();
+  };
+
+  return (
+    <>
+      <style>{gStyles}</style>
+      <div ref={topRef} style={{
+        minHeight:"100vh", background:"#1e1409",
+        display:"flex", alignItems:"flex-start", justifyContent:"center",
+        padding:"2rem 1rem",
+      }}>
+        <div style={{
+          maxWidth:680, width:"100%", background:"#f5ead0",
+          border:"1px solid #8b6914", position:"relative",
+          boxShadow:"0 8px 48px rgba(0,0,0,0.75), inset 0 0 80px rgba(139,105,20,0.06)",
+        }}>
+          <PaperEdge />
+          {step === "intro" && <IntroStep onStart={() => { setStep("question"); scrollTop(); }} />}
+          {step === "question" && (
+            <QuestionStep
+              qIndex={qIndex}
+              question={QUESTIONS[qIndex]}
+              answers={answers}
+              onAnswer={handleAnswer}
+              onNext={handleNext}
+              onPrev={handlePrev}
+            />
+          )}
+          {step === "loading" && <LoadingStep />}
+          {step === "result" && <ResultStep answers={answers} onReset={handleReset} />}
+          <PaperEdge />
+        </div>
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
